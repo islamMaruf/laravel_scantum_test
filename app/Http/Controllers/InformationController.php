@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Information;
 use Exception;
 use Illuminate\Http\Request;
-use Symfony\Component\VarDumper\Cloner\Data;
+use Illuminate\Support\Facades\DB;
 
 class InformationController extends Controller
 {
@@ -16,19 +16,18 @@ class InformationController extends Controller
 	 */
 	public function index()
 	{
-        try {
-            $informations = Information::all();
-            return response()->json([
-                'data' => $informations,
-                'message' => 'Data sent successfully'
-            ]);
-          }catch(Exception $e) {
-            return response()->json([
-                'data' => $informations,
-                'message' => 'Data sent successfully'
-            ],401);
-          }
-		
+		try {
+			$informations = DB::table('information')->orderBy('id', 'desc')->get();
+
+			return response()->json([
+				'informations' => $informations,
+				'message' => 'Data sent successfully',
+			]);
+		} catch (Exception $e) {
+			return response()->json([		
+				'err' => $e->getMessage(),
+			], 401);
+		}
 	}
 
 	/**
@@ -48,9 +47,23 @@ class InformationController extends Controller
 	 */
 	public function store(Request $request)
 	{
-        return response()->json([
-            'data' => $request->all()
-        ]);
+		try {
+			$information = new Information();
+			$information->title = $request->title;
+			$information->text = $request->text;
+			$information->language = $request->library;
+			$information->is_awesome = $request->isAwesome;
+			$information->save();
+
+			return response()->json([
+				'information' => $information,
+				'message' => 'Data saved Successfully',
+			], 201);
+		} catch (Exception $e) {
+			return response()->json([
+				'error_message' => $e->getMessage(),
+			]);
+		}
 	}
 
 	/**
